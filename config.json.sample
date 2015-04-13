@@ -1,0 +1,9 @@
+{
+    "vidf" : {
+        "gt_path" : "/Volumes/Untitled/crowd counting/ucsd/ucsdpeds_gt/gt/vidf",
+        "ori_feat" : "/Volumes/Untitled/crowd counting/ucsd/ucsdpeds_feats/features/Peds1_feats.mat",
+        "cvt_feat" : "/Volumes/Untitled/crowd counting/processed/ucsd_feats.npz",
+        "trainset" : [[1400, 2600]],
+        "testset" : [[0, 1400], [2600, 4000]]
+    } 
+}
