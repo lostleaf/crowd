@@ -5,43 +5,23 @@ from sklearn import kernel_ridge
 from sklearn import preprocessing
 from sklearn import svm
 from matplotlib import pyplot as plt
-
-def filter_by_ranges(arr, rngs):
-    data_list = [arr[st:en] for st, en in rngs]
-    return np.concatenate(data_list, axis=0)
+from expr_utils import filter_by_ranges, expr
 
 def linear(feat_train, cnt_train, feat_test, cnt_test):
     regr = linear_model.LinearRegression()
-    regr.fit(feat_train, cnt_train)
-    cnt_pred = regr.predict(feat_test)
-    print "linear"
-    print "MAE: %.2f" % np.mean(np.abs(cnt_pred  - cnt_test))
-    print "MRE: %.2f%%" % (np.mean(np.abs(cnt_pred  - cnt_test) / cnt_test) * 100)
+    expr(regr,  "linear", feat_train, cnt_train, feat_test, cnt_test)
 
 def ridge(feat_train, cnt_train, feat_test, cnt_test):
     regr = linear_model.Ridge(alpha=0.001)
-    regr.fit(feat_train, cnt_train)
-    cnt_pred = regr.predict(feat_test)
-    print "ridge"
-    print "MAE: %.2f" % np.mean(np.abs(cnt_pred  - cnt_test))
-    print "MRE: %.2f%%" % (np.mean(np.abs(cnt_pred  - cnt_test) / cnt_test) * 100)
+    expr(regr, "ridge", feat_train, cnt_train, feat_test, cnt_test)
 
 def lkridge(feat_train, cnt_train, feat_test, cnt_test):
     regr = kernel_ridge.KernelRidge(alpha=0.0008)
-    regr.fit(feat_train, cnt_train)
-    cnt_pred = regr.predict(feat_test)
-    print "linear kernel ridge regression"
-    print "MAE: %.2f" % np.mean(np.abs(cnt_pred  - cnt_test))
-    print "MRE: %.2f%%" % (np.mean(np.abs(cnt_pred  - cnt_test) / cnt_test) * 100)
+    expr(regr,  "linear kernel ridge regression", feat_train, cnt_train, feat_test, cnt_test)
 
 def lksvr(feat_train, cnt_train, feat_test, cnt_test):
-    regr = svm.LinearSVR(C=0.1)
-    regr.fit(feat_train, cnt_train)
-    cnt_pred = regr.predict(feat_test)
-    print "linear kernel SVR"
-    print "MAE: %.2f" % np.mean(np.abs(cnt_pred  - cnt_test))
-    print "MRE: %.2f%%" % (np.mean(np.abs(cnt_pred  - cnt_test) / cnt_test) * 100)
-
+    regr = svm.LinearSVR(C=1000)
+    expr(regr,  "linear kernel SVR", feat_train, cnt_train, feat_test, cnt_test)
 
 def main():
     with open('config.json') as cfg_file:
