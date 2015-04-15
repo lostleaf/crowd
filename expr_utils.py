@@ -3,28 +3,23 @@
 
 import numpy as np
 from sklearn.preprocessing import scale
+from sklearn.cross_validation import cross_val_predict
 
-def load_dataset(path, trainset, testset, is_scale=False):
+def load_dataset(path):
     feat_cnt = np.load(path)
     feat, cnt = feat_cnt['feat'], feat_cnt['cnt']
-    if is_scale:
-        feat = scale(feat)
-
-    feat_train = filter_by_ranges(feat, trainset)
-    cnt_train = filter_by_ranges(cnt, trainset)
-    feat_test = filter_by_ranges(feat, testset)
-    cnt_test = filter_by_ranges(cnt, testset)
-
-    return feat_train, cnt_train, feat_test, cnt_test
+    return feat, cnt
 
 def filter_by_ranges(arr, rngs):
     data_list = [arr[st:en] for st, en in rngs]
     return np.concatenate(data_list, axis=0)
 
-def expr(regr, name, feat_train, cnt_train, feat_test, cnt_test):
-    regr.fit(feat_train, cnt_train)
-    cnt_pred = regr.predict(feat_test)
+def expr(regr, name, feat, cnt):
     print name
-    print "MAE: %.2f" % np.mean(np.abs(cnt_pred  - cnt_test))
-    print "MRE: %.2f%%" % (np.mean(np.abs(cnt_pred  - cnt_test) / cnt_test) * 100)
+    cnt_pred = cross_val_predict(regr, feat, cnt, cv=5)
+    # print cnt_pred.shape
+    # regr.fit(feat_train, cnt_train)
+    # cnt_pred = regr.predict(feat_test)
+    print "MAE: %.2f" % np.mean(np.abs(cnt_pred  - cnt))
+    print "MRE: %.2f%%" % (np.mean(np.abs(cnt_pred  - cnt) / cnt) * 100)
 

@@ -8,42 +8,42 @@ from sklearn.pipeline import Pipeline
 from matplotlib import pyplot as plt
 from expr_utils import filter_by_ranges, expr, load_dataset
 
-def linear(feat_train, cnt_train, feat_test, cnt_test):
+with open('config.json') as cfg_file:
+    cfg = json.load(cfg_file)['vidf']
+
+feat, cnt = load_dataset(cfg['cvt_feat'])
+
+def linear():
     regr = linear_model.LinearRegression()
-    expr(regr,  "linear", feat_train, cnt_train, feat_test, cnt_test)
+    expr(regr,  "linear", feat, cnt)
 
-def ridge(feat_train, cnt_train, feat_test, cnt_test):
+def ridge():
     regr = linear_model.Ridge(alpha=1e-3)
-    expr(regr, "ridge", feat_train, cnt_train, feat_test, cnt_test)
+    expr(regr, "ridge", feat, cnt)
 
-def lkridge(feat_train, cnt_train, feat_test, cnt_test):
-    regr = kernel_ridge.KernelRidge(alpha=1e-3)
-    expr(regr,  "linear kernel ridge regression", feat_train, cnt_train, feat_test, cnt_test)
+def lkridge():
+    regr = kernel_ridge.KernelRidge(alpha=1e2)
+    expr(regr,  "linear kernel ridge regression", feat, cnt)
 
-def lksvr(feat_train, cnt_train, feat_test, cnt_test):
+def lksvr():
     scaler = StandardScaler()
-    regr = svm.LinearSVR(C=1e-1)
+    regr = svm.LinearSVR(C=0.7)
     pipeline = Pipeline([('scaler', scaler), ('svr', regr)])
-    expr(pipeline,  "linear kernel SVR", feat_train, cnt_train, feat_test, cnt_test)
+    expr(pipeline,  "linear kernel SVR", feat, cnt)
 
-def rbfsvr(feat_train, cnt_train, feat_test, cnt_test):
+def rbfsvr():
     scaler = StandardScaler()
-    regr = svm.SVR(C=1e2, gamma=0.0002)
+    regr = svm.SVR(C=7e2, gamma=0.0002)
     pipeline = Pipeline([('scaler', scaler), ('svr', regr)])
-    expr(pipeline,  "rbf kernel SVR", feat_train, cnt_train, feat_test, cnt_test)
+    expr(pipeline,  "rbf kernel SVR", feat, cnt)
 
 def main():
-    with open('config.json') as cfg_file:
-        cfg = json.load(cfg_file)['vidf']
-
-    feat_train, cnt_train, feat_test, cnt_test = load_dataset(cfg['cvt_feat'], cfg['trainset'], cfg['testset'])
-
     # print feat_train.shape, feat_test.shape
-    linear(feat_train, cnt_train, feat_test, cnt_test)
-    ridge(feat_train, cnt_train, feat_test, cnt_test)
-    lkridge(feat_train, cnt_train, feat_test, cnt_test)
-    lksvr(feat_train, cnt_train, feat_test, cnt_test)
-    rbfsvr(feat_train, cnt_train, feat_test, cnt_test)
+    linear()
+    ridge()
+    lkridge()
+    lksvr()
+    rbfsvr()
 
 
 if __name__ == '__main__':
