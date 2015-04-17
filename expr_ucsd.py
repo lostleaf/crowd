@@ -5,6 +5,7 @@ from sklearn import kernel_ridge
 from sklearn import svm
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+from sklearn.gaussian_process import GaussianProcess
 from matplotlib import pyplot as plt
 from expr_utils import filter_by_ranges, expr, load_dataset
 
@@ -37,13 +38,20 @@ def rbfsvr():
     pipeline = Pipeline([('scaler', scaler), ('svr', regr)])
     expr(pipeline,  "rbf kernel SVR", feat, cnt)
 
+def gpr():
+    scaler = StandardScaler()
+    regr = GaussianProcess(regr='linear', corr='linear', optimizer='Welch')
+    pipeline = Pipeline([('scaler', scaler), ('gpr', regr)])
+    expr(pipeline,  "GPR", feat, cnt)
+
 def main():
     # print feat_train.shape, feat_test.shape
-    linear()
-    ridge()
-    lkridge()
-    lksvr()
-    rbfsvr()
+    # linear()
+    # ridge()
+    # lkridge()
+    # lksvr()
+    # rbfsvr()
+    gpr()
 
 
 if __name__ == '__main__':
