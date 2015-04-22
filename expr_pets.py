@@ -53,7 +53,6 @@ def gpr():
 
 
 def main():
-    print feat_train.shape, feat_test.shape
     linear()
     ridge()
     lksvr()
