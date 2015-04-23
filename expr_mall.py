@@ -11,6 +11,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn import svm
 from expr_utils import filter_by_ranges, expr, load_dataset
+from sklearn.gaussian_process import GaussianProcess
+
+
 with open('config.json') as cfg_file:
     cfg = json.load(cfg_file)['mall']
 
@@ -34,7 +37,7 @@ def lkridge():
 
 def lksvr():
     scaler = StandardScaler()
-    regr = svm.LinearSVR(C=45)
+    regr = svm.LinearSVR(C=35, random_state=548213)
     pipeline = Pipeline([('scaler', scaler), ('svr', regr)])
     expr(pipeline,  "linear kernel SVR", feat, cnt)
 
@@ -46,13 +49,21 @@ def rbfsvr():
     expr(pipeline,  "rbf kernel SVR", feat, cnt)
 
 
+def gpr():
+    scaler = StandardScaler()
+    regr = GaussianProcess(regr='linear', corr='linear', theta0=0.3)
+    pipeline = Pipeline([('scaler', scaler), ('gpr', regr)])
+    expr(pipeline,  "GPR", feat, cnt)
+
+
 def main():
     # print feat_train.shape, feat_test.shape
     linear()
     ridge()
-    lkridge()
+    # lkridge()
     lksvr()
     rbfsvr()
+    gpr()
 
 if __name__ == '__main__':
     main()
