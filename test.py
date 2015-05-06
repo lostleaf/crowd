@@ -10,36 +10,61 @@ import cv2
 import matplotlib.pyplot as plt
 from itertools import izip, chain
 from sklearn.linear_model import LinearRegression
-from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split, cross_val_predict
 
-class Segm(object):
+class Segmentation(object):
 
-    def fit(self, imgs):
+    def __init__(self, imgs):
         self.bg = np.median(imgs, axis=0)
+        # plt.imshow(self.bg, cmap='gray')
+        # plt.show()
 
-    def predict(self, imgs):
-        fg_mask = np.abs(imgs - bg) > 7
+    def segm(self, imgs):
+        fg_mask = np.abs(imgs - self.bg) > 10
         return fg_mask
+class FeatExtractor(object):
+
+    def __init__(self):
+        self.fast = cv2.FastFeatureDetector(40)
+
+    def get_fast_points(self, img, segm):
+        points = self.fast.detect(img, (segm > 0).astype(np.uint8))
+        px, py = [], []
+        for p in points:
+            px.append(int(p.pt[0]))
+            py.append(int(p.pt[1]))
+        return px, py
+
+    def extract(self, img, segm):
+        # segm1 = segmer.segm(img)
+        area = np.sum(dmap[segm > 0])
+        perimeter = np.sum(dmap_sqrt[cv2.Canny(segm, 0, 255) > 0])
+        edge = np.sum(dmap_sqrt[np.logical_and(cv2.Canny(img, 100, 200) > 0, segm > 0)])
+        px, py = self.get_fast_points(img, segm)
+        point = np.sum(dmap_sqrt[py, px])
+        return np.array([area, perimeter, edge, point])
 
 def get_dirs(path):
     dirs = [os.path.join(path, d) for d in os.listdir(path)]
     return [d for d in dirs if os.path.isdir(d)]
 
-def extract(img, segm):
-    area = np.sum(dmap[segm > 0])
-    perimeter = np.sum(dmap_sqrt[cv2.Canny(segm, 0, 255) > 0])
-    return np.array([area, perimeter])
+
+def read_img(dirs):
+    ipaths = chain.from_iterable(glob.glob(d + "/*.png") for d in dirs)
+    imgs = [cv2.imread(p, 0) for p in ipaths]
+    return np.asarray(imgs)
 
 def get_feat():
     data_dirs = get_dirs(cfg['vidf']['data_path'])[:20]
     segm_dirs = get_dirs(cfg['vidf']['segm_path'])[:20]
-    img_paths = list(chain.from_iterable(glob.glob(d + "/*.png") for d in data_dirs))
-    segm_paths = list(chain.from_iterable(glob.glob(d + "/*.png") for d in segm_dirs))
+    imgs = read_img(data_dirs)
+    segms = read_img(segm_dirs)
+    extractor = FeatExtractor()
     feat = []
-    for ip, sp in izip(img_paths, segm_paths):
-        img = cv2.imread(ip, cv2.CV_LOAD_IMAGE_GRAYSCALE)
-        _, segm= cv2.threshold(cv2.imread(sp, cv2.CV_LOAD_IMAGE_GRAYSCALE), 0, 255, cv2.THRESH_BINARY)
-        feat.append(extract(img, segm))
+    # segmer = Segmer(imgs)
+    for i, s in izip(imgs, segms):
+        _, segm = cv2.threshold(s, 0, 255, cv2.THRESH_BINARY)
+        feat.append(extractor.extract(i, segm))
     feat = np.asarray(feat)
     return feat
 
@@ -53,17 +78,15 @@ def get_data():
     return get_feat(), get_cnt()
 
 def regression(feat, cnt):
-    feat_train, feat_test, cnt_train, cnt_test = train_test_split(feat, cnt, test_size=0.2)
     regr = LinearRegression()
-    regr.fit(feat_train, cnt_train)
-    cnt_pred = regr.predict(feat_test)
-    print np.mean(np.abs(cnt_pred - cnt_test))
+    cnt_pred = cross_val_predict(regr, feat, cnt, cv=5)
+    print np.mean(np.abs(cnt_pred - cnt))
 
 def main():
     feat, cnt = get_data()
     print feat.shape, cnt.shape
-    plt.plot(feat[:, :1], cnt, '.r')
-    plt.show()
+    # plt.plot(feat[:, 3], cnt, '.'); plt.show()
+    np.save("fast_cornor", feat[:, 3])
     regression(feat, cnt)
 
 if __name__ == '__main__':
