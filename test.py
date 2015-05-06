@@ -12,6 +12,15 @@ from itertools import izip, chain
 from sklearn.linear_model import LinearRegression
 from sklearn.cross_validation import train_test_split
 
+class Segm(object):
+
+    def fit(self, imgs):
+        self.bg = np.median(imgs, axis=0)
+
+    def predict(self, imgs):
+        fg_mask = np.abs(imgs - bg) > 7
+        return fg_mask
+
 def get_dirs(path):
     dirs = [os.path.join(path, d) for d in os.listdir(path)]
     return [d for d in dirs if os.path.isdir(d)]
@@ -53,6 +62,8 @@ def regression(feat, cnt):
 def main():
     feat, cnt = get_data()
     print feat.shape, cnt.shape
+    plt.plot(feat[:, :1], cnt, '.r')
+    plt.show()
     regression(feat, cnt)
 
 if __name__ == '__main__':
