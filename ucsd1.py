@@ -12,39 +12,6 @@ from itertools import izip, chain
 from sklearn.linear_model import LinearRegression
 from sklearn.cross_validation import train_test_split, cross_val_predict
 
-class Segmentation(object):
-
-    def __init__(self, imgs):
-        self.bg = np.median(imgs, axis=0)
-        # plt.imshow(self.bg, cmap='gray')
-        # plt.show()
-
-    def segm(self, imgs):
-        fg_mask = np.abs(imgs - self.bg) > 10
-        return fg_mask
-class FeatExtractor(object):
-
-    def __init__(self):
-        self.fast = cv2.FastFeatureDetector(40)
-        # self.surf = cv2.SURF(400)
-
-    def get_points(self, det, img, segm):
-        points = det.detect(img, (segm > 0).astype(np.uint8))
-        ret = 0
-        for p in points:
-            px, py = int(p.pt[0]), int(p.pt[1])
-            ret += dmap_sqrt[py, px]
-        return ret      
-
-    def extract(self, img, segm):
-        # segm1 = segmer.segm(img)
-        area = np.sum(dmap[segm > 0])
-        perimeter = np.sum(dmap_sqrt[cv2.Canny(segm, 0, 255) > 0])
-        edge = np.sum(dmap_sqrt[np.logical_and(cv2.Canny(img, 100, 200) > 0, segm > 0)])
-        # px, py = self.get_fast_points(img, segm)
-        pts_fast = self.get_points(self.fast, img, segm)
-        # pts_surf = self.get_points(self.surf, img, segm)
-        return np.array([area, perimeter, edge, pts_fast])
 
 def get_dirs(path):
     dirs = [os.path.join(path, d) for d in os.listdir(path)]
