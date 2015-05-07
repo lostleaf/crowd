@@ -26,23 +26,25 @@ class FeatExtractor(object):
 
     def __init__(self):
         self.fast = cv2.FastFeatureDetector(40)
+        # self.surf = cv2.SURF(400)
 
-    def get_fast_points(self, img, segm):
-        points = self.fast.detect(img, (segm > 0).astype(np.uint8))
-        px, py = [], []
+    def get_points(self, det, img, segm):
+        points = det.detect(img, (segm > 0).astype(np.uint8))
+        ret = 0
         for p in points:
-            px.append(int(p.pt[0]))
-            py.append(int(p.pt[1]))
-        return px, py
+            px, py = int(p.pt[0]), int(p.pt[1])
+            ret += dmap_sqrt[py, px]
+        return ret      
 
     def extract(self, img, segm):
         # segm1 = segmer.segm(img)
         area = np.sum(dmap[segm > 0])
         perimeter = np.sum(dmap_sqrt[cv2.Canny(segm, 0, 255) > 0])
         edge = np.sum(dmap_sqrt[np.logical_and(cv2.Canny(img, 100, 200) > 0, segm > 0)])
-        px, py = self.get_fast_points(img, segm)
-        point = np.sum(dmap_sqrt[py, px])
-        return np.array([area, perimeter, edge, point])
+        # px, py = self.get_fast_points(img, segm)
+        pts_fast = self.get_points(self.fast, img, segm)
+        # pts_surf = self.get_points(self.surf, img, segm)
+        return np.array([area, perimeter, edge, pts_fast])
 
 def get_dirs(path):
     dirs = [os.path.join(path, d) for d in os.listdir(path)]
@@ -85,8 +87,8 @@ def regression(feat, cnt):
 def main():
     feat, cnt = get_data()
     print feat.shape, cnt.shape
-    # plt.plot(feat[:, 3], cnt, '.'); plt.show()
-    np.save("fast_cornor", feat[:, 3])
+    plt.plot(feat[:, 4], cnt, '.'); plt.show()
+    np.save("fast_cornor", feat[:, 3:])
     regression(feat, cnt)
 
 if __name__ == '__main__':
