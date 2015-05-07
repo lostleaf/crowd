@@ -64,8 +64,8 @@ def get_dirs(path):
     dirs = [os.path.join(path, d) for d in os.listdir(path)]
     return [d for d in dirs if os.path.isdir(d)]
 
-def read_img(dirs):
-    ipaths = chain.from_iterable(glob.glob(d + "/*.png") for d in dirs)
+def read_img(dirs, ext='png'):
+    ipaths = chain.from_iterable(glob.glob(d + '/*.' + ext) for d in dirs)
     imgs = [cv2.imread(p, 0) for p in ipaths]
     return np.asarray(imgs)
 
