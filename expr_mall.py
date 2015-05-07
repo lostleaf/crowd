@@ -14,10 +14,7 @@ from expr_utils import filter_by_ranges, expr, load_dataset
 from sklearn.gaussian_process import GaussianProcess
 
 
-with open('config.json') as cfg_file:
-    cfg = json.load(cfg_file)['mall']
 
-feat, cnt = load_dataset(cfg['cvt_feat'])
 
 
 def linear():
@@ -66,4 +63,9 @@ def main():
     gpr()
 
 if __name__ == '__main__':
+    with open('config.json') as cfg_file:
+        cfg = json.load(cfg_file)['mall']
+
+    feat, cnt = load_dataset(cfg['cvt_feat'])
+    feat = feat[:, 17:29]
     main()

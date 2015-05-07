@@ -31,7 +31,7 @@ def lksvr():
 
 def rbfsvr():
     scaler = StandardScaler()
-    regr = svm.SVR(C=7e2, gamma=0.0002)
+    regr = svm.SVR(C=2000, gamma=0.00001)
     pipeline = Pipeline([('scaler', scaler), ('svr', regr)])
     expr(pipeline,  "rbf kernel SVR", feat, cnt)
 
@@ -48,11 +48,11 @@ def gpr():
 def main():
     # print feat_train.shape, feat_test.shape
     linear()
-    ridge()
+    # ridge()
     # lkridge()
-    lksvr()
+    # lksvr()
     rbfsvr()
-    gpr()
+    # gpr()
 
 
 if __name__ == '__main__':
@@ -60,8 +60,12 @@ if __name__ == '__main__':
         cfg = json.load(cfg_file)['vidf']
 
     feat, cnt = load_dataset(cfg['cvt_feat'])
-    feat_fast = np.load('fast_cornor.npy').reshape(4000,1)
-    feat = np.concatenate((feat, feat_fast), axis=1)
-    print feat.shape
+    # feat = feat[:, [0,1,9]]
+    feat_segm = feat[:, :8]
+    feat_edge = feat[:, 9:16]
+    feat_pts = np.load('fast_cornor.npy')
+    feat = np.concatenate((feat_segm, feat_edge, feat_pts), axis=1)
+    print feat[0]
 
+    
     main()

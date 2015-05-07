@@ -9,11 +9,6 @@ from matplotlib import pyplot as plt
 from expr_utils import filter_by_ranges, expr, load_dataset
 from sklearn.gaussian_process import GaussianProcess
 
-with open('config.json') as cfg_file:
-    cfg = json.load(cfg_file)['pets']
-
-feat, cnt = load_dataset(cfg['cvt_feat'])
-
 
 def linear():
     regr = linear_model.LinearRegression()
@@ -54,10 +49,20 @@ def gpr():
 
 def main():
     linear()
-    ridge()
-    lksvr()
+    # ridge()
+    # lksvr()
     rbfsvr()
-    gpr()
+    # gpr()
 
 if __name__ == '__main__':
+
+    with open('config.json') as cfg_file:
+        cfg = json.load(cfg_file)['pets']
+    feat, cnt = load_dataset(cfg['cvt_feat'])
+    feat_segm = feat[:, :8]
+    feat_edge = feat[:, 9:16]
+    # feat_pts = np.load('fast_cornor.npy')
+    feat = np.concatenate((feat_segm, feat_edge), axis=1)
+    # feat = feat[:, :17]
+
     main()
