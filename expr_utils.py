@@ -21,5 +21,6 @@ def expr(regr, name, feat, cnt):
     # regr.fit(feat_train, cnt_train)
     # cnt_pred = regr.predict(feat_test)
     print "MAE: %.2f" % np.mean(np.abs(cnt_pred  - cnt))
+    print "MSR: %.2f" % np.mean(np.square(cnt_pred - cnt))
     print "MRE: %.2f%%" % (np.mean(np.abs(cnt_pred  - cnt) / cnt) * 100)
 
