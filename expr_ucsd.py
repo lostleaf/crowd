@@ -10,10 +10,6 @@ from sklearn.gaussian_process import GaussianProcess
 from matplotlib import pyplot as plt
 from expr_utils import filter_by_ranges, expr, load_dataset
 
-with open('config.json') as cfg_file:
-    cfg = json.load(cfg_file)['vidf']
-
-feat, cnt = load_dataset(cfg['cvt_feat'])
 
 def linear():
     regr = linear_model.LinearRegression()
@@ -60,4 +56,12 @@ def main():
 
 
 if __name__ == '__main__':
+    with open('config.json') as cfg_file:
+        cfg = json.load(cfg_file)['vidf']
+
+    feat, cnt = load_dataset(cfg['cvt_feat'])
+    feat_fast = np.load('fast_cornor.npy').reshape(4000,1)
+    feat = np.concatenate((feat, feat_fast), axis=1)
+    print feat.shape
+
     main()
