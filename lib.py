@@ -5,8 +5,10 @@ import cv2
 import numpy as np
 import os
 import glob
+import scipy.io as sio
 from sklearn.linear_model import LinearRegression
 from sklearn.cross_validation import train_test_split, cross_val_predict
+from skimage.feature import greycomatrix, greycoprops
 from itertools import chain, izip
 
 class Segmentation(object):
@@ -25,6 +27,7 @@ class FeatExtractor(object):
         self.fast = cv2.FastFeatureDetector(40)
         self.dmap = dmap
         self.dmap_sqrt = np.sqrt(dmap)
+        self.kers = get_gaussians()
         # self.surf = cv2.SURF(400)
 
     def get_points(self, det, img, segm):
@@ -33,17 +36,55 @@ class FeatExtractor(object):
         for p in points:
             px, py = int(p.pt[0]), int(p.pt[1])
             ret += self.dmap_sqrt[py, px]
-        return ret      
+        return np.array([ret])      
 
-    def extract(self, img, segm):
-        # segm1 = segmer.segm(img)
+    def hist_ori(self, img):
+        fimgs = []
+        for i, k in enumerate(self.kers):
+            fimgs.append(cv2.filter2D(img, -1, k))
+        ori = np.argmax(np.array(fimgs), axis=0)
+        x, y = np.nonzero(img)
+        hist = []
+        for i in xrange(6):
+            idx = np.nonzero(ori[x, y] == i)
+            nx, ny = x[idx], y[idx]
+            hist.append(np.sum(self.dmap_sqrt[nx, ny]))
+        return np.asarray(hist)
+    
+    def extract_segm(self, img, segm):
         area = np.sum(self.dmap[segm > 0])
-        perimeter = np.sum(self.dmap_sqrt[cv2.Canny(segm, 0, 255) > 0])
-        edge = np.sum(self.dmap_sqrt[np.logical_and(cv2.Canny(img, 100, 200) > 0, segm > 0)])
-        # px, py = self.get_fast_points(img, segm)
-        pts_fast = self.get_points(self.fast, img, segm)
-        # pts_surf = self.get_points(self.surf, img, segm)
-        return np.array([area, perimeter, edge, pts_fast])
+        img_perimeter = cv2.Canny(segm, 0, 255)
+        cnt_perimeter = np.sum(self.dmap_sqrt[img_perimeter > 0])
+        histori_peri = self.hist_ori(img_perimeter)
+
+        # print np.count_nonzero(img_perimeter > 0)
+        return np.concatenate((np.array([area, cnt_perimeter]), histori_peri))
+    
+    def extract_edge(self, img, segm):
+        img_edge = cv2.Canny(img, 100, 200)
+        img_edge[segm == 0] = 0
+        cnt_edge = np.sum(self.dmap_sqrt[img_edge > 0])
+        histori_edge = self.hist_ori(img_edge)
+        return np.concatenate((np.array([cnt_edge]), histori_edge))
+
+    def extract_glcm(self, img, segm):
+        img1 = img / 32
+        img1[segm > 0] += 1
+        img1[segm == 0] = 0
+        g = greycomatrix(img1, [1], [0, np.pi/4, np.pi/2, 3*np.pi/4], levels=9)[1:, 1:, :, :]
+        gg = g / float(np.sum(g))
+        homo = greycoprops(gg, prop="homogeneity")[0]
+        energy = greycoprops(gg, prop="energy")[0]
+        gg[gg == 0] = 1
+        entropy = -np.sum(np.multiply(gg, np.log(gg)), axis=(0,1))[0]
+        return np.concatenate((homo, energy, entropy))
+        
+    def extract(self, img, segm):
+        feat_segm = self.extract_segm(img, segm)
+        feat_edge = self.extract_edge(img, segm)
+        feat_corner = self.get_points(self.fast, img, segm)
+        feat_glcm = self.extract_glcm(img, segm)
+        return np.concatenate((feat_segm, feat_edge, feat_corner, feat_glcm))
 
 def perform_regression(feat, cnt):
     regr = LinearRegression()
@@ -69,3 +110,23 @@ def read_img(dirs, ext='png'):
     imgs = [cv2.imread(p, 0) for p in ipaths]
     return np.asarray(imgs)
 
+def get_gaussians(sigmax=4, sigmay=.1):
+    kx = cv2.getGaussianKernel(17, sigmax)
+    ky = cv2.getGaussianKernel(17, sigmay)
+    ker = np.dot(ky, kx.T)
+    rows,cols = ker.shape
+    kers = [ker]
+    for deg in np.linspace(30, 150, 5):
+        m = cv2.getRotationMatrix2D((cols/2,rows/2),deg,1)
+        kers.append(cv2.warpAffine(ker, m, (cols, rows)))
+    return kers
+
+def test():
+    img = cv2.imread("/Volumes/Untitled/crowd counting/ucsd/ucsdpeds_vidf/video/vidf/vidf1_33_000.y/vidf1_33_000_f001.png", 0)
+    segm = cv2.imread("/Volumes/Untitled/crowd counting/ucsd/ucsdpeds_vidf/segm/vidf/vidf1_33_000.segm/vidf1_33_000_f001.png", 0)
+    dmap = sio.loadmat("/Volumes/Untitled/crowd counting/ucsd/ucsdpeds_gt/gt/vidf/vidf1_33_dmap3.mat")['dmap']['pmapxy'][0, 0]
+    extractor = FeatExtractor(dmap) 
+    print extractor.extract(img, segm)
+
+if __name__ == '__main__':
+    test() 
