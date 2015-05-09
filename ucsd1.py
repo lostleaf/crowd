@@ -30,7 +30,7 @@ def main():
     feat, cnt = get_data()
     print feat.shape, cnt.shape
     # plt.plot(feat[:, 4], cnt, '.'); plt.show()
-    np.save("fast_cornor", feat[:, 3:])
+    np.save("fast_ucsd", feat[:, [15]])
     perform_regression(feat, cnt)
 
 if __name__ == '__main__':
