@@ -8,6 +8,7 @@ from sklearn.pipeline import Pipeline
 from matplotlib import pyplot as plt
 from expr_utils import filter_by_ranges, expr, load_dataset
 from sklearn.gaussian_process import GaussianProcess
+from sklearn.ensemble import *
 
 
 def linear():
@@ -34,18 +35,16 @@ def lksvr():
 
 def rbfsvr():
     scaler = StandardScaler()
-    regr = svm.SVR(C=1300, gamma=1e-5)
+    regr = svm.SVR(C=1000, gamma=1e-3)
     pipeline = Pipeline([('scaler', scaler), ('svr', regr)])
     expr(pipeline,  "rbf kernel SVR", feat, cnt)
 
 
 def gpr():
     scaler = StandardScaler()
-    regr = GaussianProcess(regr='constant', corr='cubic', theta0=0.07)
+    regr = GaussianProcess(regr='quadratic', corr='linear', theta0=1e5)
     pipeline = Pipeline([('scaler', scaler), ('gpr', regr)])
     expr(pipeline,  "GPR", feat, cnt)
-
-
 
 def main():
     linear()
@@ -59,10 +58,13 @@ if __name__ == '__main__':
     with open('config.json') as cfg_file:
         cfg = json.load(cfg_file)['pets']
     feat, cnt = load_dataset(cfg['cvt_feat'])
+
     feat_segm = feat[:, :8]
-    feat_edge = feat[:, 9:16]
-    # feat_pts = np.load('fast_cornor.npy')
-    feat = np.concatenate((feat_segm, feat_edge), axis=1)
-    # feat = feat[:, :17]
+    feat_edge = feat[:, 8:15]
+    feat_fast = feat[:, [15]]
+    feat_glcm = feat[:, 16:]
+    # feat = np.concatenate((feat_segm, feat_edge, feat_fast, feat_glcm), axis=1)
+    # feat = np.concatenate((feat_segm, feat_edge, feat_fast), axis=1)
+    feat = feat_fast
 
     main()

@@ -9,7 +9,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.gaussian_process import GaussianProcess
 from matplotlib import pyplot as plt
 from expr_utils import filter_by_ranges, expr, load_dataset
-
+from sklearn.ensemble import AdaBoostRegressor, BaggingRegressor, GradientBoostingRegressor
 
 def linear():
     regr = linear_model.LinearRegression()
@@ -31,7 +31,7 @@ def lksvr():
 
 def rbfsvr():
     scaler = StandardScaler()
-    regr = svm.SVR(C=2000, gamma=0.00001)
+    regr = svm.SVR(C=1e6, gamma=1e-6)
     pipeline = Pipeline([('scaler', scaler), ('svr', regr)])
     expr(pipeline,  "rbf kernel SVR", feat, cnt)
 
@@ -61,11 +61,11 @@ if __name__ == '__main__':
 
     feat, cnt = load_dataset(cfg['cvt_feat'])
     # feat = feat[:, [0,1,9]]
-    feat_segm = feat[:, :8]
+    feat_segm = feat[:, :9]
     feat_edge = feat[:, 9:16]
-    feat_pts = np.load('fast_cornor.npy')
-    feat = np.concatenate((feat_segm, feat_edge, feat_pts), axis=1)
-    print feat[0]
-
+    feat_glcm = feat[:, 17:29]
+    feat_pts = np.load('fast_ucsd.npy')
+    # feat = np.concatenate((feat_segm, feat_edge, feat_pts), axis=1)
+    feat = feat_pts 
     
     main()
