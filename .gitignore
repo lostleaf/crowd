@@ -2,3 +2,4 @@
 *.npy
 .DS_Store
 config.json
+plot/

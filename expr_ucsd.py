@@ -65,7 +65,6 @@ if __name__ == '__main__':
     feat_edge = feat[:, 9:16]
     feat_glcm = feat[:, 17:29]
     feat_pts = np.load('fast_ucsd.npy')
-    # feat = np.concatenate((feat_segm, feat_edge, feat_pts), axis=1)
-    feat = feat_pts 
+    feat = np.concatenate((feat_segm, feat_edge, feat_pts), axis=1)
     
     main()
