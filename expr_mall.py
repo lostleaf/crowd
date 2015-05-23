@@ -14,9 +14,6 @@ from expr_utils import filter_by_ranges, expr, load_dataset
 from sklearn.gaussian_process import GaussianProcess
 
 
-
-
-
 def linear():
     regr = linear_model.LinearRegression()
     expr(regr,  "linear", feat, cnt)
