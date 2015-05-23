@@ -1,0 +1,73 @@
+{
+    "dataset_path" : "data/mall1.npz",
+    "feat_groups1" : {
+        "segm" : [0, 9],
+        "glcm" : [8, 17],
+        "edge" : [17, 29],
+        "fast" : [29, 30]
+    },
+    "feat_groups" : {
+        "segm" : [0, 8],
+        "edge" : [8, 15],
+        "glcm" : [16, 28],
+        "fast" : [15, 16]
+    },
+    "models" : [        
+        {
+            "name" : "linear",
+            "use_feat" : ["segm", "edge", "fast"],
+            "model" : "sklearn.linear_model.LinearRegression",
+            "work" : true,
+            "normalization" : false,
+            "params" : {}
+        },
+        {
+            "name" : "SET rbf svr",
+            "use_feat" : ["segm", "edge", "glcm"],
+            "model" : "sklearn.svm.SVR",
+            "work" : false,
+            "normalization" : true,
+            "params" : {"C" : 2e6, "gamma" : 2e-5}
+        },
+        {
+            "name" : "SETC rbf svr",
+            "use_feat" : ["segm", "edge", "glcm", "fast"],
+            "model" : "sklearn.svm.SVR",
+            "work" : false,
+            "normalization" : true,
+            "params" : {"C" : 7e5, "gamma" : 8e-5}
+        },
+        {
+            "name" : "SEC rbf svr",
+            "use_feat" : ["segm", "edge",  "fast"],
+            "model" : "sklearn.svm.SVR",
+            "work" : true,
+            "normalization" : true,
+            "params" : {"C" : 1e3, "gamma" : 1e-6}
+        },
+        {
+            "name" : "ridge regression",
+            "use_feat" : ["segm", "edge", "glcm", "fast"],
+            "model" : "sklearn.linear_model.Ridge",
+            "work" : false,
+            "normalization": false,
+            "params" : {"alpha" : 1e-3}
+        },
+        {
+            "name" : "linear svr",
+            "use_feat" : ["segm", "edge", "glcm", "fast"],
+            "model" : "sklearn.svm.LinearSVR",
+            "work" : false,
+            "normalization": true,
+            "params" : {"C" : 0.7}
+        },
+        {
+            "name" : "gaussian process regression",
+            "use_feat" : ["segm", "edge", "glcm", "fast"],
+            "model" : "sklearn.gaussian_process.GaussianProcess",
+            "work" : false,
+            "normalization": true,
+            "params" : {"regr" : "linear", "corr" : "linear", "theta0":0.3}
+        }
+    ]
+}

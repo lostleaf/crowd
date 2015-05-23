@@ -63,8 +63,8 @@ if __name__ == '__main__':
     feat_edge = feat[:, 8:15]
     feat_fast = feat[:, [15]]
     feat_glcm = feat[:, 16:]
-    # feat = np.concatenate((feat_segm, feat_edge, feat_fast, feat_glcm), axis=1)
+    feat = np.concatenate((feat_segm, feat_edge, feat_fast, feat_glcm), axis=1)
     # feat = np.concatenate((feat_segm, feat_edge, feat_fast), axis=1)
-    feat = feat_fast
+    # feat = feat_fast
 
     main()

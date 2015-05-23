@@ -8,7 +8,7 @@ import glob
 import scipy.io as sio
 from sklearn.linear_model import LinearRegression
 from sklearn.cross_validation import train_test_split, cross_val_predict
-from skimage.feature import greycomatrix, greycoprops
+from skimage.feature import greycomatrix, greycoprops, canny
 from itertools import chain, izip
 
 class Segmentation(object):
@@ -23,8 +23,8 @@ class Segmentation(object):
         return fg_mask
 class FeatExtractor(object):
 
-    def __init__(self, dmap):
-        self.fast = cv2.FastFeatureDetector(40)
+    def __init__(self, dmap, fast_param):
+        self.fast = cv2.FastFeatureDetector(fast_param)
         self.dmap = dmap
         self.dmap_sqrt = np.sqrt(dmap)
         self.kers = get_gaussians()
@@ -39,6 +39,7 @@ class FeatExtractor(object):
         return np.array([ret])      
 
     def hist_ori(self, img):
+        # print img
         fimgs = []
         for i, k in enumerate(self.kers):
             fimgs.append(cv2.filter2D(img, -1, k))
@@ -62,6 +63,7 @@ class FeatExtractor(object):
     
     def extract_edge(self, img, segm):
         img_edge = cv2.Canny(img, 100, 200)
+        # img_edge = canny(img, sigma=3, low_threshold=100, high_threshold=200).astype(np.uint8)
         img_edge[segm == 0] = 0
         cnt_edge = np.sum(self.dmap_sqrt[img_edge > 0])
         histori_edge = self.hist_ori(img_edge)
@@ -90,9 +92,10 @@ def perform_regression(feat, cnt):
     regr = LinearRegression()
     cnt_pred = cross_val_predict(regr, feat, cnt, cv=5)
     print np.mean(np.abs(cnt_pred - cnt))
+    print np.mean(np.abs(cnt_pred - cnt) / cnt)
 
-def get_feat(imgs, segms, dmap):
-    extractor = FeatExtractor(dmap)
+def get_feat(imgs, segms, dmap, fast_param=40):
+    extractor = FeatExtractor(dmap, fast_param)
     feat = []
     # segmer = Segmer(imgs)
     for i, s in izip(imgs, segms):

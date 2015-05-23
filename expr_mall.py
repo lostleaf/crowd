@@ -14,9 +14,6 @@ from expr_utils import filter_by_ranges, expr, load_dataset
 from sklearn.gaussian_process import GaussianProcess
 
 
-
-
-
 def linear():
     regr = linear_model.LinearRegression()
     expr(regr,  "linear", feat, cnt)
@@ -34,7 +31,7 @@ def lkridge():
 
 def lksvr():
     scaler = StandardScaler()
-    regr = svm.LinearSVR(C=35, random_state=548213)
+    regr = svm.LinearSVR(C=35)
     pipeline = Pipeline([('scaler', scaler), ('svr', regr)])
     expr(pipeline,  "linear kernel SVR", feat, cnt)
 
@@ -56,16 +53,25 @@ def gpr():
 def main():
     # print feat_train.shape, feat_test.shape
     linear()
-    ridge()
-    # lkridge()
-    lksvr()
-    rbfsvr()
-    gpr()
+    # ridge()
+    # # lkridge()
+    # lksvr()
+    # rbfsvr()
+    # gpr()
 
 if __name__ == '__main__':
     with open('config.json') as cfg_file:
         cfg = json.load(cfg_file)['mall']
 
+    feat1, cnt = load_dataset(cfg['cvt_feat1'])
     feat, cnt = load_dataset(cfg['cvt_feat'])
-    feat = feat[:, 17:29]
+    print feat.shape
+    feat_segm = feat[:, :10]
+    feat_edge = feat[:, 10:17]
+    feat_fast = feat1[:, [15]]
+    feat_glcm = feat[:, 26:]
+    feat = np.c_[feat_segm, feat_edge, feat_glcm, feat_fast]
+    # plt.plot(feat_fast, cnt, '.')
+    # plt.show()
+    # feat = feat[:, 17:29]
     main()
